@@ -1,0 +1,70 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name:
+System Name:
+System Number:
+Programmer:
+Comments:
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+// #ENABLE_DYNAMIC
+// #SYMBOL_NAME ""
+// #HINT ""
+// #DEFINE_CONSTANT
+// #CATEGORY "" 
+// #PRINT_TO_TRACE
+// #DIGITAL_EXPAND 
+// #ANALOG_SERIAL_EXPAND 
+// #OUTPUT_SHIFT 
+// #HELP_PDF_FILE ""
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+#ENABLE_TRACE
+// #ENCODING_ASCII
+// #ENCODING_UTF16
+// #ENCODING_INHERIT_FROM_PARENT
+// #ENCODING_INHERIT_FROM_PROGRAM
+
+#user_simplsharp_library "SerialCommandQueue"
+
+buffer_input Command_In[255];
+string_output Command_Out;
+
+CommandQueue queue;
+
+string sTemp[255];
+
+eventhandler CommandSentHandler(CommandQueue sender, CommandArgs args)
+{
+	Command_Out = args.Command;
+}
+
+threadsafe change Command_In
+{
+	while(1)
+	{
+		try
+		{
+			sTemp = gather("\r\n", Command_In);
+			if(len(sTemp) > 0) queue.AddCommand(sTemp);
+		}
+		catch
+		{
+			print("Error handling the incoming data");
+		}
+	}
+}
+
+function main()
+{
+	queue.TimerInterval = 300;
+ 	registerEvent(queue, CommandSent, CommandSentHandler);
+}
+
